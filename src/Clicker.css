@@ -1,0 +1,14 @@
+img.clicker {
+	padding: 5%;
+	width: 20%;
+}
+
+img.clicker.click {
+	animation-fill-mode: forwards;
+	-moz-transform: scale(0.9);
+}
+
+img.clicker:hover {
+	animation-fill-mode: forwards;
+	-moz-transform: scale(1.2);
+}

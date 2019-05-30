@@ -1,0 +1,30 @@
+.App {
+  padding: 32px;
+}
+
+/*
+.App > .left {
+  order: 0;
+  display: flex;
+  flex-direction: column;
+  
+
+}
+
+.App > .left > .cash {
+  order: 0;
+}
+
+.App > .left > .cps {
+  order: 1;
+}
+
+.App > .left > Clicker {
+  order: 2;
+}
+
+.App > .right {
+  order: 1;
+  display: flex;
+  flex-direction: column;
+}*/
