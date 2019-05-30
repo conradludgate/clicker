@@ -7,9 +7,7 @@ import Button from '@material-ui/core/Button';
 
 import Building from './Building.js';
 
-import format_number from './number.js';
-
-function Right({cash, buildings, buyBuilding}) {
+function Right({cash, nbuildings, buyBuilding}) {
 	const [pow, setPow] = useState(0);
 	const [sell, setSell] = useState(1); // 1 is buy, -1 is sell
 
@@ -27,9 +25,9 @@ function Right({cash, buildings, buyBuilding}) {
 			</Tabs>
 
 		</Grid>
-		{buildings.map((b, i) => (
-		<Grid item xs={2}>
-			<Building index={i} key={i} name={b.name} baseCost={b.baseCost} numOwned={b.numOwned} cps={b.cps} cash={cash} buyBuilding={buyBuilding} buyN={Math.pow(10, pow) * sell} />
+		{nbuildings.map((n, i) => (
+		<Grid item xs={2} key={i}>
+			<Building index={i} numOwned={n} cash={cash} buyBuilding={buyBuilding} buyN={Math.pow(10, pow) * sell} />
 		</Grid>
 		))}
 	</Grid>

@@ -9,7 +9,7 @@ function Clicker(props) {
 	return (
 		<img className="clicker" onClick={() => {
 			props.earnCash(props.perClick);
-		}} src={money_bag} />
+		}} src={money_bag} alt="Click me!"/>
 	);
 }
 

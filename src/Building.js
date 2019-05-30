@@ -3,12 +3,14 @@ import format_number from './number.js';
 
 import './Building.css';
 
+const buildings = [
+	{name: "Printer", baseCost: 15, cps: 0.1},
+	{name: "Press", baseCost: 200, cps: 10},
+]
+
 function Building({
 		index,
-		name,
-		baseCost,
 		numOwned,
-		cps,
 		cash,
 		buyBuilding,
 		buyN,
@@ -19,19 +21,19 @@ function Building({
 		buyN = -numOwned
 	}
 
-	let price = buyN >= 0 ? baseCost * Math.pow(1.15, numOwned) 	   * (Math.pow(1.15,  buyN) - 1) / 0.15 :
-						   -baseCost * Math.pow(1.15, numOwned + buyN) * (Math.pow(1.15, -buyN) - 1) / 0.15 / 4;
+	let price = buyN >= 0 ? buildings[index].baseCost * Math.pow(1.15, numOwned)        * (Math.pow(1.15,  buyN) - 1) / 0.15 :
+						   -buildings[index].baseCost * Math.pow(1.15, numOwned + buyN) * (Math.pow(1.15, -buyN) - 1) / 0.15 / 4;
 
 
 	if (buyN === 0) {
 		return (<div className="building-cant-afford">
-			<span className="name">{name}</span><br />
+			<span className="name">{buildings[index].name}</span><br />
 			<span className="owned">0</span><br />
 			<span className="price">$0</span><br />
 		</div>);
 	} else if (buyN < 0) {
 		return (<div className="building" onClick={() => buyBuilding(index, price, buyN)}>
-			<span className="name">{name}</span><br />
+			<span className="name">{buildings[index].name}</span><br />
 			<span className="owned">{numOwned}</span><br />
 			<span className="refund">{format_number(Math.round(-price), "$")}</span><br />
 		</div>);
@@ -40,7 +42,7 @@ function Building({
 	if (cash >= price) {
 		return (
 			<div className="building" onClick={() => buyBuilding(index, price, buyN)}>
-				<span className="name">{name}</span><br />
+				<span className="name">{buildings[index].name}</span><br />
 				<span className="owned">{numOwned}</span><br />
 				<span className="price">{format_number(Math.round(price), "$")}</span><br />
 			</div>
@@ -48,7 +50,7 @@ function Building({
 	} else {
 		return (
 			<div className="building-cant-afford">
-				<span className="name">{name}</span><br />
+				<span className="name">{buildings[index].name}</span><br />
 				<span className="owned">{numOwned}</span><br />
 				<span className="price">{format_number(Math.round(price), "$")}</span><br />
 			</div>
@@ -57,3 +59,4 @@ function Building({
 }
 
 export default Building;
+export { buildings };
