@@ -2,6 +2,7 @@
   "name": "clicker",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://files.conradludgate.com/clicker",
   "dependencies": {
     "@material-ui/core": "^4.0.1",
     "moment": "^2.24.0",
