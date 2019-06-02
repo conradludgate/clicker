@@ -1,50 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useStateWithLocalStorage } from './hooks.js';
+import React, { useState } from 'react';
 
 import Grid from '@material-ui/core/Grid';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Button from '@material-ui/core/Button';
 
-import Building, { buildings } from './Building.js';
+import Building, { calcPrice } from './Building.js';
 
-function Right({cash, earnCash, spendCash, setCps, setCpsLoaded, reset}) {
+function Right({cash, earnCash, spendCash, setCps, setCpsLoaded, nbuildings, buyBuilding}) {
 	const [pow, setPow] = useState(0);
 	const [sell, setSell] = useState(1); // 1 is buy, -1 is sell
-
-	// Create some buildings
-	const [nbuildings, setNBuildings] = useStateWithLocalStorage("buildings", new Array(buildings.length).fill(0), JSON.parse, JSON.stringify);
-
-	// Buy building functionality
-	const buyBuilding = (index, price, num=1) => {
-		if (price < 0) {
-			earnCash(-price);
-			setNBuildings(b => {
-				if (b[index] < num) { return b; }
-
-				return [...b.slice(0, index), b[index] + num, ...b.slice(index+1)];
-			});
-		} if (spendCash(price)) {
-			setNBuildings(b => {
-				return [...b.slice(0, index), b[index] + num, ...b.slice(index+1)];
-			});
-		}
-	}
-
-	const setCpsRef = useRef(setCps);
-
-	useEffect(() => {
-		setCpsRef.current(nbuildings.reduce((acc, b, i) => {
-			return acc + b * buildings[i].cps; 
-		}, 0));
-		setCpsLoaded(true);
-	}, [nbuildings, setCpsLoaded]);
-
-	useEffect(() => {
-		if (reset) {
-			setNBuildings(new Array(buildings.length).fill(0));
-		}
-	}, [reset, setNBuildings])
 
 	return (
 	<Grid item xs container spacing={2} direction="column">
@@ -58,11 +23,15 @@ function Right({cash, earnCash, spendCash, setCps, setCpsLoaded, reset}) {
 			</Tabs>
 
 		</Grid>
-		{nbuildings.map((n, i) => (
-		<Grid item xs={2} key={i}>
-			<Building index={i} numOwned={n} cash={cash} buyBuilding={buyBuilding} buyN={Math.pow(10, pow) * sell} />
-		</Grid>
-		))}
+		{nbuildings.map((n, i) => {
+			const [p, buyN] = calcPrice(i, n, Math.pow(10, pow) * sell);
+
+			return (
+			<Grid item key={i}>
+				<Building index={i} numOwned={n} price={p} canAfford={cash >= p} buyBuilding={buyBuilding} buyN={buyN} />
+			</Grid>
+			);
+		})}
 	</Grid>
 	);
 }

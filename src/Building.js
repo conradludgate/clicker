@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useStateWithLocalStorage } from './hooks.js';
+
 import format_number from './number.js';
 
 import './Building.css';
@@ -8,22 +10,54 @@ const buildings = [
 	{name: "Press", baseCost: 200, cps: 10},
 ]
 
-function Building({
-		index,
-		numOwned,
-		cash,
-		buyBuilding,
-		buyN,
-	}) {
+function useBuildings(reset, earnCash, spendCash) {
+	// Create some buildings
+	const [nbuildings, setNBuildings] = useStateWithLocalStorage("buildings", new Array(buildings.length).fill(0), JSON.parse, JSON.stringify);
 
+	// Buy building functionality
+	const buyBuilding = (index, price, num=1) => {
+		if (price < 0) {
+			earnCash(-price);
+			setNBuildings(b => {
+				if (b[index] < num) { return b; }
 
+				return [...b.slice(0, index), b[index] + num, ...b.slice(index+1)];
+			});
+		} if (spendCash(price)) {
+			setNBuildings(b => {
+				return [...b.slice(0, index), b[index] + num, ...b.slice(index+1)];
+			});
+		}
+	}
+
+	useEffect(() => {
+		if (reset) {
+			setNBuildings(new Array(buildings.length).fill(0));
+		}
+	}, [reset, setNBuildings]);
+
+	return [nbuildings, buyBuilding];
+}
+
+function calcPrice(index, numOwned, buyN) {
 	if (-buyN > numOwned) {
 		buyN = -numOwned
 	}
 
-	let price = buyN >= 0 ? buildings[index].baseCost * Math.pow(1.15, numOwned)        * (Math.pow(1.15,  buyN) - 1) / 0.15 :
-						   -buildings[index].baseCost * Math.pow(1.15, numOwned + buyN) * (Math.pow(1.15, -buyN) - 1) / 0.15 / 4;
+	const price = buyN >= 0 ? buildings[index].baseCost * Math.pow(1.15, numOwned)        * (Math.pow(1.15,  buyN) - 1) / 0.15 :
+							 -buildings[index].baseCost * Math.pow(1.15, numOwned + buyN) * (Math.pow(1.15, -buyN) - 1) / 0.15 / 4;
 
+	return [price, buyN];
+}
+
+function Building({
+		index,
+		numOwned,
+		price,
+		canAfford,
+		buyBuilding,
+		buyN,
+	}) {
 
 	if (buyN === 0) {
 		return (<div className="building-cant-afford">
@@ -39,7 +73,7 @@ function Building({
 		</div>);
 	}
 
-	if (cash >= price) {
+	if (canAfford) {
 		return (
 			<div className="building" onClick={() => buyBuilding(index, price, buyN)}>
 				<span className="name">{buildings[index].name}</span><br />
@@ -59,4 +93,4 @@ function Building({
 }
 
 export default Building;
-export { buildings };
+export { calcPrice, buildings, useBuildings };

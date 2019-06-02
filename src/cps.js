@@ -1,49 +1,52 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { useInterval, useStateWithLocalStorage } from './hooks.js';
+
+import { buildings } from './Building.js';
 
 import format_number from './number.js';
 
-import { toast } from 'react-toastify';
+import { toast, Slide } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const moment = require('moment');
 
-function useCps(earnCash, updateHz, offlineEaringRate) {
-	const [cps, setCps] = useState(0);
+function useCps(nbuildings, earnCash, updateHz, offlineEaringRate) {
+	const cps = useMemo(() => nbuildings.reduce(
+		(acc, b, i) => acc + b * buildings[i].cps, 0
+	), [nbuildings]);
 	
 	const [lastUpdate, setLastUpdate] = useStateWithLocalStorage("last_update", Date.now(), parseInt);
-	const [cpsLoaded, setCpsLoaded] = useState(false);
+	// const [cpsLoaded, setCpsLoaded] = useState(false);
 
 	// Stops the compiler warnings, not sure if this is how I want to do this though
 	// I saw useCallback being recommended
 	// Will experiment
-	const state = useRef({lastUpdate, setLastUpdate, earnCash, cps, offlineEaringRate});
+	const state = useRef({cps, lastUpdate, setLastUpdate, earnCash, offlineEaringRate});
 	useEffect(() => {
 		state.current.cps = cps
 	}, [cps]);
 
 	useEffect(() => {
 		// Earn money offline
+		
+		state.current.setLastUpdate(Date.now())
+		let time = Date.now() - state.current.lastUpdate;
+		let x = state.current.cps * time / 1000 * state.current.offlineEaringRate;
+		state.current.earnCash(x);
 
-		if (cpsLoaded) {
-			state.current.setLastUpdate(Date.now())
-			let time = Date.now() - state.current.lastUpdate;
-			let x = state.current.cps * time / 1000 * state.current.offlineEaringRate;
-			state.current.earnCash(x);
-
-			if (x > 0 && time > 0) {
-				toast.info("Earned " + format_number(x, "$") + 
-					" since you were offline for " + moment.duration(time).humanize(), {
-						position: toast.POSITION.BOTTOM_CENTER,
-						className: 'notification',
-						hideProgressBar: true,
-						closeOnClick: true,
-						pauseOnHover: true,
-						draggable: true,
-					});
-			}
+		if (x > 0 && time > 0) {
+			toast.info("Earned " + format_number(x) + 
+				" since you were offline for " + moment.duration(time).humanize(), {
+					position: toast.POSITION.BOTTOM_CENTER,
+					className: 'notification',
+					hideProgressBar: true,
+					closeOnClick: true,
+					pauseOnHover: true,
+					draggable: true,
+					transition: Slide,
+				});
 		}
-	}, [cpsLoaded, state]);
+	}, [state]);
 
 	// There were some interesting bugs here
 	// Race conditions, timeouts being incorrect, etc
@@ -53,7 +56,7 @@ function useCps(earnCash, updateHz, offlineEaringRate) {
 		earnCash(cps * (Date.now() - lastUpdate) / 1000);
 	}, 1000 / updateHz);
 
-	return [cps, setCps, setCpsLoaded]
+	return [cps]
 } 
 
 export default useCps;
